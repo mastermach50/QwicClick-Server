@@ -1,6 +1,6 @@
 from http.server import *
 
-PORT = 3310
+PORT = 3300
 
 class QwicClick(BaseHTTPRequestHandler):
 

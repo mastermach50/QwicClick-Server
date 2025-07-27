@@ -1,10 +1,10 @@
-# shell.nix for Python Environment
+# shell.nix for QwicClick-Server Environment
 {
   pkgs ? import <nixpkgs> { },
 }:
 
 pkgs.mkShell {
-  name = "Py";
+  name = "QwC";
   packages = with pkgs; [
     virtualenv
 
@@ -18,4 +18,5 @@ pkgs.mkShell {
     virtualenv venv -q
     source ./venv/bin/activate
   '';
+  PORT = "3300";
 }
