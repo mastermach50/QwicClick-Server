@@ -7,6 +7,7 @@ class QwicClick(BaseHTTPRequestHandler):
     def redirect_to_app(self):
         self.send_response(301)
         self.send_header("Location", "https://app.qwic.click")
+        self.send_header("EndServer", "QwicClick Redirection Server/0.0.1")
         self.end_headers()
         self.wfile.write(bytes("Redirecting", "utf-8"))
 
