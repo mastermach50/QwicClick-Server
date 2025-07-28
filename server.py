@@ -1,6 +1,9 @@
+#!/bin/env python
+
 from http.server import *
 
 PORT = 3300
+ADDRESS = "0.0.0.0"
 
 class QwicClick(BaseHTTPRequestHandler):
 
@@ -17,6 +20,6 @@ class QwicClick(BaseHTTPRequestHandler):
     def do_GET(self):
         self.redirect_to_app()
 
-with HTTPServer(('', PORT), QwicClick) as httpd:
-    print("Serving on " + str(PORT))
+with HTTPServer((ADDRESS, PORT), QwicClick) as httpd:
+    print(f"Serving on {ADDRESS}:{PORT}")
     httpd.serve_forever()
