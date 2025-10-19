@@ -1,12 +1,12 @@
 import server
-import database
+import database as db
 import os
 
 PORT = int(os.getenv("PORT", 3300))
 ADDRESS = "0.0.0.0"
 
 def main():
-    database.connect()
+    db.connect()
     # database.initialize()
     print("Connected and initialized db")
 

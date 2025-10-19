@@ -29,7 +29,7 @@
 
         installPhase = ''
           mkdir -p $out/bin $out/libexec/qwic-click-server
-          cp -R $src/* $out/libexec/qwic-click-server
+          cp -R $src/src/* $out/libexec/qwic-click-server
           makeWrapper ${pythonEnv}/bin/python $out/bin/qwic-click-server \
             --set PYTHONPATH "$PYTHONPATH:$out/libexec/qwic-click-server" \
             --add-flags "$out/libexec/qwic-click-server/main.py"
