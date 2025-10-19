@@ -1,9 +1,11 @@
 #!/bin/env python
 
+import os
 from http.server import *
+from api import api_handler
+from redirector import redirect_handler
 
-PORT = 3300
-ADDRESS = "0.0.0.0"
+APP_URL = "https://app.qwic.click"
 
 class QwicClick(BaseHTTPRequestHandler):
 
@@ -13,16 +15,35 @@ class QwicClick(BaseHTTPRequestHandler):
         self.send_header("EndServer", "QwicClick Redirection Server/0.0.1")
         self.end_headers()
         self.wfile.write(bytes("Redirecting", "utf-8"))
+    
+    def return_invalid(self):
+        self.send_response(400)
+        self.send_header("EndServer", "QwicClick Redirection Server/0.0.1")
+        self.end_headers()
+        self.wfile.write(bytes("Invalid Shortlink", "utf-8"))
 
     def version_string(self):
         return "QwicClick Redirection Server/0.0.1"
 
     def do_GET(self):
-        if (self.path == "/design"):
-            self.redirect_to("https://www.figma.com/design/cP4r2oxky5hL0G0ThpUuGB/QwicClick?node-id=0-1&t=sYT4aplf9E7S5wTc-1")
-        else:
-            self.redirect_to("https://app.qwic.click")
+        match self.path:
+            case "/":
+                self.redirect_to(APP_URL)
+            case "/api":
+                api_handler(self, self.path)
+            case _:
+                redirect_handler(self, self.path)
 
-with HTTPServer((ADDRESS, PORT), QwicClick) as httpd:
-    print(f"Serving on {ADDRESS}:{PORT}")
-    httpd.serve_forever()
+    def do_POST(self):
+        match self.path:
+            case "/":
+                self.redirect_to(APP_URL)
+            case "/api":
+                api_handler(self, self.path)
+            case _:
+                redirect_handler(self, self.path)
+
+def serve(PORT, ADDRESS):
+    with HTTPServer((ADDRESS, PORT), QwicClick) as httpd:
+        print(f"Serving on {ADDRESS}:{PORT}")
+        httpd.serve_forever()
