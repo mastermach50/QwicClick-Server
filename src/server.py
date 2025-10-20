@@ -18,10 +18,10 @@ class QwicClick(BaseHTTPRequestHandler):
         return "QwicClick Redirection Server/0.0.1"
 
     def do_GET(self):
-        self.qwicclick_handle_request(self)
+        self.qwicclick_handle_request()
 
     def do_POST(self):
-        self.qwicclick_handle_request(self)
+        self.qwicclick_handle_request()
 
     def qwicclick_handle_request(self):
         path = self.path.strip("/").split("/")

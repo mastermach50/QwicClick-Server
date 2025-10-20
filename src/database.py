@@ -77,8 +77,7 @@ def get_longlink(shortlink):
     cursor = connection.cursor()
 
     try:
-        query = "SELECT longlink FROM Links WHERE shortlink =%s"
-        cursor.execute(query, (shortlink,))
+        cursor.execute("SELECT longlink FROM Links WHERE shortlink =%s", (shortlink,))
 
         result = cursor.fetchone()
         print(f"{shortlink} query result: {result}")
@@ -162,9 +161,7 @@ def verify_session(sessiontoken):
     cursor = connection.cursor()
 
     try:
-        cursor.execute("""
-            SELECT userid, validtill FROM Sessions WHERE sessiontoken = %s
-        """, (sessiontoken,))
+        cursor.execute("SELECT userid, validtill FROM Sessions WHERE sessiontoken = %s", (sessiontoken,))
         result = cursor.fetchone()
         cursor.close()
 
@@ -189,6 +186,10 @@ def add_link(userid, shortlink, longlink):
         if not shortlink:
             shortlink = gen.generate_shortlink(cursor)
 
+        cursor.execute("SELECT 1 FROM Links WHERE shortlink = %s", (shortlink,))
+        if cursor.fetchone():
+            return "shortlink already exists"
+
         linkid = gen.generate_linkid(cursor)
 
         cursor.execute("""
@@ -203,11 +204,15 @@ def add_link(userid, shortlink, longlink):
         print(f"MySQL Error: {err}")
         return None
 
-def delete_link(linkid):
+def update_link(linkid, new_shortlink, new_longlink):
     cursor = connection.cursor()
 
     try:
-        cursor.execute("DELETE FROM Links WHERE id = %s", (linkid,))
+        cursor.execute("""
+            UPDATE Links
+            SET shortlink = %s, longlink = %s
+            WHERE linkid = %s;
+        """, (new_shortlink, new_longlink, linkid,))
 
         cursor.close()
         return cursor.rowcount > 0
@@ -215,3 +220,58 @@ def delete_link(linkid):
     except pymysql.MySQLError as err:
         print(f"MySQL Error: {err}")
         return False
+
+def delete_link(linkid):
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("DELETE FROM Links WHERE linkid = %s", (linkid,))
+
+        cursor.close()
+        return cursor.rowcount > 0
+
+    except pymysql.MySQLError as err:
+        print(f"MySQL Error: {err}")
+        return False
+
+def get_link_info(linkid):
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("SELECT linkid, shortlink, longlink FROM Links WHERE linkid = %s", (linkid,))
+        result = cursor.fetchone()
+
+        if not result:
+            return "link does not exist"
+
+        linkid, shortlink, longlink = result
+
+        cursor.close()
+        return (linkid, shortlink, longlink)
+
+    except pymysql.MySQLError as err:
+        print(f"MySQL Error: {err}")
+        return None
+
+
+def get_all_links(userid):
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("SELECT linkid, shortlink, longlink FROM Links WHERE userid = %s", (userid,))
+        result = cursor.fetchall()
+
+        if not result:
+            return "no links found"
+
+        links = []
+        for row in result:
+            linkid, shortlink, longlink = row
+            links.append({"linkid": linkid, "shortlink": shortlink, "longlink": longlink})
+
+        cursor.close()
+        return links
+
+    except pymysql.MySQLError as err:
+        print(f"MySQL Error: {err}")
+        return None

@@ -1,3 +1,6 @@
+import json
+
+
 def redirect_to(handler, url):
     handler.send_response(301)
     handler.send_header("Location", url)
@@ -23,3 +26,17 @@ def server_error(handler):
     handler.send_response(500)
     handler.end_headers()
     handler.wfile.write(bytes("Internal server error", "utf-8"))
+
+def send_json(handler, code, data):
+    handler.send_response(code)
+    handler.send_header('Content-Type', 'application/json')
+    handler.end_headers()
+    handler.wfile.write(
+        json.dumps(data).encode('utf-8')
+    )
+
+def send_text(handler, code, data):
+    handler.send_response(code)
+    handler.send_header('Content-Type', 'text/plain')
+    handler.end_headers()
+    handler.wfile.write(bytes(data, "utf-8"))

@@ -3,10 +3,16 @@ import database as db
 import canned_responses as cr
 from http.server import BaseHTTPRequestHandler
 
+from security import with_session
+
 def api_handler(handler, path):
     match path[1]:
         case "login": login(handler)
         case "register": register(handler)
+        case "add_link": add_link(handler)
+        case "update_link": update_link(handler)
+        case "delete_link": delete_link(handler)
+        case "get_all_links": get_all_links(handler)
         case _: cr.bad_request(handler)
 
 def get_data(handler: BaseHTTPRequestHandler):
@@ -41,12 +47,7 @@ def login(handler):
             cr.server_error(handler)
         case _:
             sessiontoken = db.create_session(userid)
-            handler.send_response(200)
-            handler.send_header('Content-Type', 'application/json')
-            handler.end_headers()
-            handler.wfile.write(
-                json.dumps({'sessiontoken': sessiontoken}).encode('utf-8')
-            )
+            cr.send_json(handler, 200, {'sessiontoken': sessiontoken})
 
 def register(handler):
     post_data = get_data(handler)
@@ -61,9 +62,62 @@ def register(handler):
         case None:
             cr.server_error(handler)
         case _:
-            handler.send_response(200)
-            handler.send_header('Content-Type', 'application/json')
-            handler.end_headers()
-            handler.wfile.write(
-                json.dumps({'userid': userid}).encode('utf-8')
-            )
+            cr.send_json(handler, 200, {'userid': userid})
+
+@with_session
+def add_link(handler, userid):
+    post_data = get_data(handler)
+    if post_data is None:
+        return
+
+    linkid = db.add_link(userid, post_data.get("shortlink"), post_data.get("longlink"))
+
+    match linkid:
+        case "shortlink already exists":
+            cr.bad_request(handler, "Shortlink already exists")
+        case None:
+            cr.server_error(handler)
+        case _:
+            (linkid, shortlink, longlink) = db.get_link_info(linkid)
+            cr.send_json(handler, 200, {"linkid": linkid, "shortlink": shortlink, "longlink": longlink})
+
+@with_session
+def update_link(handler, userid):
+    post_data = get_data(handler)
+    if post_data is None:
+        return
+
+    result = db.update_link(post_data.get("linkid"), post_data.get("shortlink"), post_data.get("longlink"))
+
+    match result:
+        case True:
+            cr.send_text(handler, 200, "Link updated")
+        case False:
+            cr.server_error(handler)
+
+@with_session
+def delete_link(handler, userid):
+    post_data = get_data(handler)
+    if post_data is None:
+        return
+
+    result = db.delete_link(post_data.get("linkid"))
+
+    match result:
+        case True:
+            cr.send_text(handler, 200, "Link deleted")
+        case False:
+            cr.server_error(handler)
+
+
+@with_session
+def get_all_links(handler, userid):
+    links = db.get_all_links(userid)
+
+    match links:
+        case "no links found":
+            cr.not_found(handler, "No links found")
+        case None:
+            cr.server_error(handler)
+        case _:
+            cr.send_json(handler, 200, {"links": links})
