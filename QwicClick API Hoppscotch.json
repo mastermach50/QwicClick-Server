@@ -95,7 +95,7 @@
       },
       "body": {
         "contentType": "application/json",
-        "body": "{\n\t\"shortlink\":\"design\",\n  \t\"longlink\":\"htrtps://www.figma.com/design/cP4r2oxky5hL0G0ThpUuGB/QwicClick?node-id=0-1&t=sYT4aplf9E7S5wTc-1\"\n}"
+        "body": "{\n  \t\"linkid\":\"<<my-linkid>>\",\n\t\"shortlink\":\"design\",\n  \t\"longlink\":\"https://www.figma.com/design/cP4r2oxky5hL0G0ThpUuGB/QwicClick?node-id=0-1&t=sYT4aplf9E7S5wTc-1\"\n}"
       },
       "requestVariables": [],
       "responses": {},
@@ -138,7 +138,7 @@
       "headers": [
         {
           "key": "sessiontoken",
-          "value": "7d10e937-57ed-44e2-a478-ce2a58524e83",
+          "value": "<<my-session-token>>",
           "active": true,
           "description": ""
         }
@@ -151,7 +151,7 @@
       },
       "body": {
         "contentType": "application/json",
-        "body": "{\n\t\"shortlink\":\"design\",\n  \t\"longlink\":\"https://www.figma.com/design/cP4r2oxky5hL0G0ThpUuGB/QwicClick?node-id=0-1&t=sYT4aplf9E7S5wTc-1\"\n}"
+        "body": "{\n\t\"linkid\": \"<<my-linkid>>\"\n}"
       },
       "requestVariables": [],
       "responses": {},
