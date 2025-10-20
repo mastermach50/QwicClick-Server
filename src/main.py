@@ -6,11 +6,17 @@ PORT = int(os.getenv("PORT", 3300))
 ADDRESS = "0.0.0.0"
 
 def main():
-    db.connect()
+    # Uncomment line for initial db setup
     # database.initialize()
+    db.connect()
     print("Connected and initialized db")
 
-    server.serve(PORT, ADDRESS)
+    try:
+        server.serve(PORT, ADDRESS)
+    except KeyboardInterrupt:
+        db.disconnect()
+        print("Disconnected from db")
+        print("Shutting down")
 
 if __name__ == "__main__":
     main()

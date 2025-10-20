@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timedelta
 import bcrypt
 import pymysql
 import generators as gen
@@ -11,7 +11,8 @@ def connect():
         host='localhost',
         user='root',
         password='1204', 
-        autocommit=True
+        autocommit=True,
+        database='qwicclick'
     )
 
 def disconnect():
@@ -19,6 +20,12 @@ def disconnect():
     connection.close()
 
 def initialize():
+    connection = pymysql.connect(
+        host='localhost',
+        user='root',
+        password='1204', 
+        autocommit=True,
+    )
     cursor = connection.cursor()
 
     cursor.execute("CREATE DATABASE IF NOT EXISTS qwicclick")
@@ -60,24 +67,23 @@ def initialize():
     CREATE TABLE IF NOT EXISTS BannedUsers (
         emailid VARCHAR(64) PRIMARY KEY,
         reason TEXT
-    
     );
     """)
 
     cursor.close()
+    connection.close()
 
 def get_longlink(shortlink):
     cursor = connection.cursor()
 
     try:
-        print(f"Looking for shortlink: '{shortlink}' of type {type(shortlink)}")
-
         query = "SELECT longlink FROM Links WHERE shortlink =%s"
         cursor.execute(query, (shortlink,))
 
         result = cursor.fetchone()
-        print("Query result:", result)
+        print(f"{shortlink} query result: {result}")
 
+        cursor.close()
         return result[0] if result else None
 
     except pymysql.MySQLError as err:
@@ -101,6 +107,8 @@ def add_user(email, password, username):
             INSERT INTO Users (userid, username, password, email)
             VALUES (%s, %s, %s, %s)
         """, (userid, username, hashed_password, email))
+
+        cursor.close()
         return userid
 
     except pymysql.MySQLError as err:
@@ -108,12 +116,14 @@ def add_user(email, password, username):
         return None
 
 
-def db_verify_user(email, password):
+def verify_user(email, password):
     cursor = connection.cursor()
 
     try:
         cursor.execute("SELECT userid, password FROM Users WHERE email = %s", (email,))
         result = cursor.fetchone()
+        cursor.close()
+
         if not result:
             return "user does not exist"
 
@@ -127,26 +137,28 @@ def db_verify_user(email, password):
         print(f"MySQL Error: {err}")
         return None
 
-def db_create_session(userid):
+def create_session(userid):
     cursor = connection.cursor()
 
     try:
         sessiontoken = gen.generate_sessiontoken(cursor)
 
-        validtill = datetime.utcnow() + datetime.timedelta(days=30)
+        validtill = datetime.utcnow() + timedelta(days=30)
 
         cursor.execute("""
             INSERT INTO Sessions (sessiontoken, userid, validtill)
             VALUES (%s, %s, %s)
         """, (sessiontoken, userid, validtill))
+
+        cursor.close()
         return sessiontoken
 
     except pymysql.MySQLError as err:
         print(f"MySQL Error: {err}")
         return None
-    
 
-def db_verify_session(sessiontoken):
+
+def verify_session(sessiontoken):
     cursor = connection.cursor()
 
     try:
@@ -154,6 +166,8 @@ def db_verify_session(sessiontoken):
             SELECT userid, validtill FROM Sessions WHERE sessiontoken = %s
         """, (sessiontoken,))
         result = cursor.fetchone()
+        cursor.close()
+
         if not result:
             return "session does not exist"
 
@@ -168,7 +182,7 @@ def db_verify_session(sessiontoken):
         return None
 
 
-def db_add_link(userid, shortlink, longlink):
+def add_link(userid, shortlink, longlink):
     cursor = connection.cursor()
 
     try:
@@ -181,17 +195,21 @@ def db_add_link(userid, shortlink, longlink):
             INSERT INTO Links (userid, linkid, shortlink, longlink, fingerprint)
             VALUES (%s, %s, %s, %s, %s)
         """, (userid, linkid, shortlink, longlink, False))
+
+        cursor.close()
         return linkid
 
     except pymysql.MySQLError as err:
         print(f"MySQL Error: {err}")
         return None
 
-def delete_link_by_id(linkid):
+def delete_link(linkid):
     cursor = connection.cursor()
 
     try:
         cursor.execute("DELETE FROM Links WHERE id = %s", (linkid,))
+
+        cursor.close()
         return cursor.rowcount > 0
 
     except pymysql.MySQLError as err:

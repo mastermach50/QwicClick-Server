@@ -18,6 +18,12 @@ class QwicClick(BaseHTTPRequestHandler):
         return "QwicClick Redirection Server/0.0.1"
 
     def do_GET(self):
+        self.qwicclick_handle_request(self)
+
+    def do_POST(self):
+        self.qwicclick_handle_request(self)
+
+    def qwicclick_handle_request(self):
         path = self.path.strip("/").split("/")
 
         match path[0]:
@@ -25,17 +31,6 @@ class QwicClick(BaseHTTPRequestHandler):
                 cr.redirect_to(self, APP_URL)
             case "api":
                 api_handler(self, path)
-            case _:
-                redirect_handler(self, path, None)
-
-    def do_POST(self):
-        path = self.path.strip("/").split("/")
-
-        match path[0]:
-            case "":
-                cr.redirect_to(self, APP_URL)
-            case "api":
-                api_handler(self, path, self.request)
             case _:
                 redirect_handler(self, path)
 
