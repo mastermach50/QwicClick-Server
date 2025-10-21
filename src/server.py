@@ -24,6 +24,10 @@ class QwicClick(BaseHTTPRequestHandler):
 
     def do_POST(self):
         self.qwicclick_handle_request()
+    
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.end_headers()
 
     def qwicclick_handle_request(self):
         path = self.path.strip("/").split("/")
