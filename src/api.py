@@ -14,6 +14,7 @@ def api_handler(handler, path):
         case "update_link": update_link(handler)
         case "delete_link": delete_link(handler)
         case "get_all_links": get_all_links(handler)
+        case "whoami": whoami(handler)
         case _: cr.bad_request(handler)
 
 def get_data(handler: BaseHTTPRequestHandler):
@@ -51,6 +52,10 @@ def login(handler):
             cr.server_error(handler)
         case _:
             sessiontoken = db.create_session(userid)
+            if sessiontoken is None:
+                cr.server_error(handler)
+                return
+
             cr.send_json(handler, 200, {'sessiontoken': sessiontoken})
 
 def register(handler):
@@ -74,15 +79,15 @@ def add_link(handler, userid):
     if post_data is None:
         return
 
-    linkid = db.add_link(userid, post_data.get("shortlink"), post_data.get("longlink"))
+    data = db.add_link(userid, post_data.get("shortlink"), post_data.get("longlink"))
 
-    match linkid:
+    match data:
         case "shortlink already exists":
             cr.bad_request(handler, "Shortlink already exists")
         case None:
             cr.server_error(handler)
         case _:
-            (linkid, shortlink, longlink) = db.get_link_info(linkid)
+            (linkid, shortlink, longlink) = data
             cr.send_json(handler, 200, {"linkid": linkid, "shortlink": shortlink, "longlink": longlink})
 
 @with_session
@@ -125,3 +130,8 @@ def get_all_links(handler, userid):
             cr.server_error(handler)
         case _:
             cr.send_json(handler, 200, {"links": links})
+
+@with_session
+def whoami(handler, userid):
+    data = db.get_user_info(userid)
+    cr.send_json(handler, 200, {"username": data[0], "email": data[1]})

@@ -83,7 +83,10 @@ def get_longlink(shortlink):
         print(f"{shortlink} query result: {result}")
 
         cursor.close()
-        return result[0] if result else None
+        if not result:
+            return "link does not exist"
+
+        return result[0]
 
     except pymysql.MySQLError as err:
         print(f"MySQL Error: {err}")
@@ -198,7 +201,7 @@ def add_link(userid, shortlink, longlink):
         """, (userid, linkid, shortlink, longlink, False))
 
         cursor.close()
-        return linkid
+        return (linkid, shortlink, longlink)
 
     except pymysql.MySQLError as err:
         print(f"MySQL Error: {err}")
@@ -234,24 +237,24 @@ def delete_link(linkid):
         print(f"MySQL Error: {err}")
         return False
 
-def get_link_info(linkid):
-    cursor = connection.cursor()
+# def get_link_info(linkid):
+#     cursor = connection.cursor()
 
-    try:
-        cursor.execute("SELECT linkid, shortlink, longlink FROM Links WHERE linkid = %s", (linkid,))
-        result = cursor.fetchone()
+#     try:
+#         cursor.execute("SELECT linkid, shortlink, longlink FROM Links WHERE linkid = %s", (linkid,))
+#         result = cursor.fetchone()
 
-        if not result:
-            return "link does not exist"
+#         if not result:
+#             return "link does not exist"
 
-        linkid, shortlink, longlink = result
+#         linkid, shortlink, longlink = result
 
-        cursor.close()
-        return (linkid, shortlink, longlink)
+#         cursor.close()
+#         return (linkid, shortlink, longlink)
 
-    except pymysql.MySQLError as err:
-        print(f"MySQL Error: {err}")
-        return None
+#     except pymysql.MySQLError as err:
+#         print(f"MySQL Error: {err}")
+#         return None
 
 
 def get_all_links(userid):
@@ -271,6 +274,25 @@ def get_all_links(userid):
 
         cursor.close()
         return links
+
+    except pymysql.MySQLError as err:
+        print(f"MySQL Error: {err}")
+        return None
+    
+def get_user_info(userid):
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("SELECT username, email FROM Users WHERE userid = %s", (userid,))
+        result = cursor.fetchone()
+
+        if not result:
+            return "user does not exist"
+
+        username, email = result
+
+        cursor.close()
+        return (username, email)
 
     except pymysql.MySQLError as err:
         print(f"MySQL Error: {err}")
