@@ -12,6 +12,8 @@ class QwicClick(BaseHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header("EndServer", "QwicClick Redirection Server/0.0.1")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         return super().end_headers()
 
     def version_string(self):

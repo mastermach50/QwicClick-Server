@@ -7,6 +7,7 @@ from security import with_session
 
 def api_handler(handler, path):
     match path[1]:
+        case "ping": ping(handler)
         case "login": login(handler)
         case "register": register(handler)
         case "add_link": add_link(handler)
@@ -29,6 +30,9 @@ def get_data(handler: BaseHTTPRequestHandler):
     except:
         cr.bad_request(handler, "Invalid JSON in request body")
         return None
+
+def ping(handler):
+    cr.send_text(handler, 200, f"pong from {handler.version_string()}")
 
 
 def login(handler):
