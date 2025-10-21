@@ -124,8 +124,6 @@ def get_all_links(handler, userid):
     links = db.get_all_links(userid)
 
     match links:
-        case "no links found":
-            cr.not_found(handler, "No links found")
         case None:
             cr.server_error(handler)
         case _:

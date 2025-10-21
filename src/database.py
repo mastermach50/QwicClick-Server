@@ -265,7 +265,7 @@ def get_all_links(userid):
         result = cursor.fetchall()
 
         if not result:
-            return "no links found"
+            return []
 
         links = []
         for row in result:
