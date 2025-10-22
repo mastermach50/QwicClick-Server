@@ -81,7 +81,8 @@ def get_longlink(shortlink):
         cursor.execute("SELECT linkid, longlink FROM Links WHERE shortlink =%s", (shortlink,))
 
         result = cursor.fetchone()
-        print(f"{shortlink} query result: {result.linkid} {result.longlink}")
+        (linkid, longlink) = result
+        print(f"{shortlink} query result: {linkid} {longlink}")
 
         cursor.close()
         if not result:
