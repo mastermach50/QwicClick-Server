@@ -14,6 +14,7 @@ def api_handler(handler, path):
         case "update_link": update_link(handler)
         case "delete_link": delete_link(handler)
         case "get_all_links": get_all_links(handler)
+        case "get_link_stats": get_link_stats(handler)
         case "whoami": whoami(handler)
         case _: cr.bad_request(handler)
 
@@ -128,6 +129,23 @@ def get_all_links(handler, userid):
             cr.server_error(handler)
         case _:
             cr.send_json(handler, 200, {"links": links})
+
+@with_session
+def get_link_stats(handler, userid):
+    post_data = get_data(handler)
+    if post_data is None:
+        return
+    
+    linkid = post_data.get("linkid")
+    count = db.get_link_stats(linkid)
+
+    match count:
+        case "link does not exist":
+            cr.not_found(handler, "Link does not exist")
+        case None:
+            cr.server_error(handler)
+        case _:
+            cr.send_json(handler, 200, {"count": count})
 
 @with_session
 def whoami(handler, userid):

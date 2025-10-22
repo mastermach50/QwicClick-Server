@@ -2,10 +2,12 @@ import canned_responses as cr
 import database as db
 
 def redirect_handler(handler, path):
-    longlink = db.get_longlink(path[0])
+    result = db.get_longlink(path[0])
 
-    if longlink is not None:
+    if result is not None:
+        (linkid, longlink) = result
         print(f"Redirect to {longlink}")
+        db.increment_count(linkid)
         cr.redirect_to(handler, longlink)
     else:
         print(f"Invalid shortlink {path[0]}")

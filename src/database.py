@@ -47,6 +47,7 @@ def initialize():
         linkid VARCHAR(64) PRIMARY KEY,
         shortlink VARCHAR(64) NOT NULL UNIQUE,
         longlink TEXT NOT NULL,
+        count INTEGER DEFAULT 0,
         fingerprint BOOLEAN DEFAULT FALSE,
         FOREIGN KEY (userid) REFERENCES Users(userid)
             ON DELETE CASCADE
@@ -77,21 +78,32 @@ def get_longlink(shortlink):
     cursor = connection.cursor()
 
     try:
-        cursor.execute("SELECT longlink FROM Links WHERE shortlink =%s", (shortlink,))
+        cursor.execute("SELECT linkid, longlink FROM Links WHERE shortlink =%s", (shortlink,))
 
         result = cursor.fetchone()
-        print(f"{shortlink} query result: {result}")
+        print(f"{shortlink} query result: {result.linkid} {result.longlink}")
 
         cursor.close()
         if not result:
             return "link does not exist"
 
-        return result[0]
+        return result
 
     except pymysql.MySQLError as err:
         print(f"MySQL Error: {err}")
         return None
 
+def increment_count(linkid):
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("UPDATE Links SET count = count + 1 WHERE linkid = %s", (linkid,))
+
+        cursor.close()
+        return cursor.rowcount > 0
+    except pymysql.MySQLError as err:
+        print(f"MySQL Error: {err}")
+        return None
 
 def add_user(email, password, username):
     cursor = connection.cursor()
@@ -278,7 +290,24 @@ def get_all_links(userid):
     except pymysql.MySQLError as err:
         print(f"MySQL Error: {err}")
         return None
-    
+
+def get_link_stats(linkid):
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute("SELECT count FROM Links WHERE linkid = %s", (linkid,))
+        result = cursor.fetchone()
+
+        if not result:
+            return "link does not exist"
+
+        cursor.close()
+        return int(result[0])
+    except pymysql.MySQLError as err:
+        print(f"MySQL Error: {err}")
+        return None
+
+
 def get_user_info(userid):
     cursor = connection.cursor()
 
